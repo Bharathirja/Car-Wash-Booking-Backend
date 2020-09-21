@@ -20,7 +20,7 @@ urlpatterns = [
     path('register/',Register.as_view()),
     path('login/',LoginAPI.as_view()),
     path('logout/',LogoutView.as_view()),
-    path('logout/$',knox_views.LogoutView.as_view()),
+    path('logout/',knox_views.LogoutView.as_view()),
     # re_path('^customerprofile/',CustomerProfile.as_view())
 
 
