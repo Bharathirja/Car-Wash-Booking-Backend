@@ -28,9 +28,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
-AUTH_USER_MODEL = 'merchant.User'
-# Application definition
+AUTH_USER_MODEL = 'customer.User'
 
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -38,10 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'merchant',
+    'customer',
     "rest_framework",
     'rest_framework.authtoken',
-    "knox",
+    
 ]
 
 MIDDLEWARE = [
@@ -128,16 +128,16 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES':(
-        'knox.auth.TokenAuthentication',
-        'rest_framework.authentication.TokenAuthentication',),
-
+    'rest_framework.authentication.TokenAuthentication',),
 }
 
-REST_KNOX = {
-    'USER_SERIALIZER':'merchant.serializer.UserSerializer',
-    'TOKEN_TTL':timedelta(hours=24)
 
-}
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = "bharathiraja.pappugroup@gmail.com"
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_PASSWORD = "raja961#"
 
 # SIMPLE_JWT = {
 #     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=600),
