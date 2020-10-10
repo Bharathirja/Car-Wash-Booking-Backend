@@ -51,7 +51,6 @@ class EmailOTPAdmin(admin.ModelAdmin):
 
 class CustomerProfileAdmin(admin.ModelAdmin):
 
-    
     model = CustomerProfile
     list_display = ('pk','phone','name','email','address','photo')
     list_display_links = ('email',)
