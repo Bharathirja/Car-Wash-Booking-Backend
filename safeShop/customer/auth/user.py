@@ -13,9 +13,9 @@ from django.contrib.auth import login,logout
 
 '''Generate Random 4 digit number'''
 def send_otp(phone):
+    
     if phone:
         key = random.randint(999,9999)
-        print(key)
         return key
     else:
         return False

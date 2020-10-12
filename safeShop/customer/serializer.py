@@ -66,7 +66,22 @@ class LoginSerializer(serializers.Serializer):
         data['user'] = user
         return data
 
+class VehicleBrandSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model=VehicleBrand
+        fields=('pk','brand_name')
+
+class BookingSerializer(serializers.ModelSerializer):
+
+    active = serializers.BooleanField(read_only=True)
+    class Meta:
+        model=Bookings
+        fields=('pk','vehicle_type','area','date','slot','longitude','latitude','active')
+
+
 class CustomerSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = CustomerProfile
         fields = ('pk','name','phone','email','address','photo')

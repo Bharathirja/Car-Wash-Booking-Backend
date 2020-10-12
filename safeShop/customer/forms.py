@@ -5,6 +5,7 @@ from .models import User,UserManager
 
 
 class CustomUserCreationForm(UserCreationForm):
+    
     class Meta:
         class Meta(UserCreationForm.Meta):
             model = User

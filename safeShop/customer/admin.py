@@ -9,7 +9,7 @@ from .forms import CustomUserCreationForm
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import EmailOTP,CustomerProfile
+from .models import EmailOTP,CustomerProfile,VehicleBrand,Bookings
 
 
 
@@ -28,7 +28,7 @@ class CustomUserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email','is_staff', 'is_active')}
+            'fields': ('email','password1', 'password2','is_staff', 'is_active')}
         ),
     )
     search_fields = ('email',)
@@ -42,24 +42,46 @@ class CustomUserAdmin(BaseUserAdmin):
 class EmailOTPAdmin(admin.ModelAdmin):
 
     model = EmailOTP
-    list_display = ('pk','email','validated','active')
+    list_display = ('pk','email','validated','active','date')
     list_display_links = ('email',)
-    list_filter = ('email','validated')
+    list_filter = ('email','validated','date')
    
-    search_fields = ('email',)
+    search_fields = ('email','date')
     ordering = ('email',)
 
 class CustomerProfileAdmin(admin.ModelAdmin):
 
 
     model = CustomerProfile
-    list_display = ('pk','phone','name','email','address','photo')
+    list_display = ('pk','phone','name','email','address','photo','date')
     list_display_links = ('email',)
     list_filter = ('email','phone','name')
    
     search_fields = ('email','phone','name')
     ordering = ('name','email','phone')
 
+class VehicleBrandAdmin(admin.ModelAdmin):
+
+    model = VehicleBrand
+    list_display = ('pk','brand_name','date')
+    list_display_links = ('brand_name',)
+    list_filter = ('brand_name',)
+   
+    search_fields = ('brand_name','date')
+    ordering = ('brand_name',)
+
+class BookingsAdmin(admin.ModelAdmin):
+    
+    model = VehicleBrand
+    list_display = ('pk','vehicle_type','area','date','slot','longitude','latitude','active')
+    list_display_links = ('vehicle_type',)
+    list_filter = ('vehicle_type','area','date','slot')
+   
+    search_fields = ('vehicle_type','slot')
+    ordering = ('vehicle_type','date')
+
+admin.site.register(Bookings,BookingsAdmin)
 admin.site.register(CustomerProfile,CustomerProfileAdmin)
 admin.site.register(EmailOTP, EmailOTPAdmin)
+admin.site.register(VehicleBrand,VehicleBrandAdmin)
 admin.site.register(User, CustomUserAdmin)

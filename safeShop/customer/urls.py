@@ -7,7 +7,10 @@ from rest_framework import routers
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
-router.register(r'customerprofile', CustomerViewSet)
+router.register(r'customer-profile', CustomerViewSet)
+router.register(r'vehicle-brand',VehicleViewSet)
+router.register(r'bookings',BookingViewSet)
+
 
 urlpatterns = [
     path('', include(router.urls)),
