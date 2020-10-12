@@ -1,5 +1,4 @@
-app_name = 'merchant'
-
+app_name = 'customer'
 from django.contrib import admin
 from django.urls import path,include
 from .views import *

@@ -6,6 +6,7 @@ from django.contrib.auth import login
 User = get_user_model()
 
 class CreateUserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = ('email',)
@@ -18,29 +19,27 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = ('id', 'email',)
 
 
 class LoginSerializer(serializers.Serializer):
-    phone = serializers.CharField()
+    
+    email = serializers.CharField()
     password = serializers.CharField(
         style = { 'input_type': 'password'}, trim_whitespace = False
     )
     
     def validate(self, data):
-        print(data)
-        phone = data.get('phone')
+       
+        email = data.get('email')
         password = data.get('password')
         
-        if phone:
-            if User.objects.filter(phone = phone).exists():
-                print(phone)
-                user = authenticate(request = self.context.get('request'), phone = phone,password = password)
-                print("........")
-                print(user)
-
+        if email:
+            if User.objects.filter(email = email).exists():
+                user = authenticate(request = self.context.get('request'), phone = email,password = password)
             else:
                 msg = {
                     'detail' : 'Username number not found',
@@ -50,7 +49,7 @@ class LoginSerializer(serializers.Serializer):
 
             if not user:
                 msg = {
-                    'detail' : 'Username and password not matching. Try again',
+                    'detail' : 'Email and password not matching. Try again',
                     'status' : False,
                 }    
                 raise serializers.ValidationError(msg, code = 'authorization')
@@ -58,7 +57,7 @@ class LoginSerializer(serializers.Serializer):
         
         else:
             msg = {
-                    'detail' : 'Phone number and password not found in request',
+                    'detail' : 'Email and password not found in request',
                     'status' : False,
                 }    
             raise serializers.ValidationError(msg, code = 'authorization')
@@ -81,7 +80,7 @@ class BookingSerializer(serializers.ModelSerializer):
 
 
 class CustomerSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = CustomerProfile
         fields = ('pk','name','phone','email','address','photo')
