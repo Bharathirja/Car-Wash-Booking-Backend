@@ -13,7 +13,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only' : True},}
         
         def create(self, validated_data):
-            print(validated_data)
+            
             user = User.objects.create(**validated_data)
             return user
 
@@ -68,19 +68,20 @@ class LoginSerializer(serializers.Serializer):
 class VehicleBrandSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model=VehicleBrand
-        fields=('pk','brand_name')
+        model = VehicleBrand
+        fields = ('pk','brand_name')
 
 class BookingSerializer(serializers.ModelSerializer):
 
     active = serializers.BooleanField(read_only=True)
     class Meta:
-        model=Bookings
-        fields=('pk','vehicle_type','area','date','slot','longitude','latitude','active')
+        model = Bookings
+        fields = ('pk','vehicle_type','area','date','slot','longitude','latitude','active')
 
 
 class CustomerSerializer(serializers.ModelSerializer):
+    email = serializers.CharField(read_only=True)
 
     class Meta:
         model = CustomerProfile
-        fields = ('pk','name','phone','email','address','photo')
+        fields = ('pk','name','phone','address','photo','email')
