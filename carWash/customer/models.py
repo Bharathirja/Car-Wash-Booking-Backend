@@ -8,6 +8,8 @@ from django.db.models.signals import post_save
 import random
 import os
 import requests
+from django.contrib.auth.hashers import make_password    
+
 
 class UserManager(BaseUserManager):
    
@@ -39,8 +41,9 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     
-    username = None
+    # username = None
     email = models.EmailField('Email',max_length=254, unique=True,null=True)
+    # exists = models.BooleanField('exists',default = True,help_text="if true means new user false means exists user")
     
 
     USERNAME_FIELD = 'email'
@@ -49,9 +52,15 @@ class User(AbstractUser):
 
     objects = UserManager()
 
+    
+
     def __str__(self):
         return self.email
-    
+
+    def save(self, *args, **kwargs):
+        self.username = self.email
+        super(User, self).save(*args, **kwargs)
+
 class EmailOTP(models.Model):
    
     email = models.EmailField(max_length=254, unique=True) 
@@ -68,58 +77,96 @@ class EmailOTP(models.Model):
     def __str__(self):
         return str(self.email) + ' is sent ' + str(self.otp)
 
-class VehicleBrand(models.Model):
-    
-    TYPES = (('HATCHPACK', 'HATCHPACK'), ('SEDAN', 'SEDAN'), ('SUV', 'SUV'),)
-    brand_name = models.CharField(max_length=250,choices=TYPES)
+    # def save(self, **kwargs):
+    #     some_salt = 'OTP' 
+    #     self.otp = make_password(self.otp, some_salt)
+       
+    #     super(EmailOTP, self).save(**kwargs)
+
+class Common(models.Model):
+
     created_at = models.DateTimeField('created_at',auto_now_add=True)
     updated_at = models.DateTimeField('updated_at',auto_now_add=True)
-    user = models.ForeignKey(User,on_delete=models.PROTECT,related_name='vehicle_user')
+    created_user = models.ForeignKey(User,on_delete=models.PROTECT)
 
+    class Meta:
+        abstract = True
+
+class VehicleBrand(Common):
+
+    brand_name = models.CharField(max_length=250,unique=True)
+    amount = models.IntegerField('amount')
+    
     class Meta:
         verbose_name_plural = "Vehicle Brand"
 
     def __str__(self):
         return str(self.brand_name)
 
+class TimeSlots(Common):
 
-class Bookings(models.Model):
-
-    vehicle_type = models.ForeignKey(VehicleBrand,on_delete=models.PROTECT,related_name='vehicle_types')
-    area = models.CharField('area',max_length=250)
-    date = models.DateField('date')
     slot = models.CharField('slot',max_length=250)
-    active = models.BooleanField('active',default=False,help_text='If it True means that booking completed. If it False Booking under progress')
-    longitude = models.DecimalField('longitude',max_digits=9, decimal_places=6)
-    latitude  = models.DecimalField('latitude',max_digits=9, decimal_places=6)
-    user = models.ForeignKey(User,on_delete=models.PROTECT,related_name='booking_user')
-    created_at = models.DateTimeField('created_at',auto_now_add=True)
-    updated_at = models.DateTimeField('updated_at',auto_now_add=True)
-
+    active = models.BooleanField('active',default=True)
+    
     class Meta:
-        verbose_name_plural = "Bookings"
-        
+        verbose_name_plural = "Time Slots"
 
     def __str__(self):
-        return str(self.vehicle_type)
+        return str(self.slot)
+
+class Area(Common):
+
+    area_name = models.CharField('area_name',max_length=250)
+
+    class Meta:
+        verbose_name_plural = "Area"
+
+    def __str__(self):
+        return str(self.area_name)
 
 
-
-class CustomerProfile(models.Model):
-
+class CustomerProfile(Common):
+    
     phone_regex = RegexValidator( regex = r'^\+?1?\d{9,10}$', message ="Phone number must be entered in the format +919999999999. Up to 10 digits allowed.")
-    phone       = models.CharField('Phone',validators =[phone_regex], max_length=10, unique=True,null=True)
+    phone       = models.CharField('Phone',validators =[phone_regex], max_length=10)
     name = models.CharField(max_length=250,null=False,blank=False)
-    email = models.CharField(max_length=250)
+    email = models.EmailField(max_length=250, unique = True)
     address = models.CharField(max_length=250)
-    photo = models.ImageField(upload_to='customers/')
-    created_at = models.DateTimeField('created_at',auto_now_add=True)
-    updated_at = models.DateTimeField('updated_at',auto_now_add=True)
-    user = models.ForeignKey(User,on_delete=models.PROTECT,related_name='customer_user')
-
+    photo = models.ImageField(upload_to='customers/', null=True, blank=True)
+    
     class Meta:
         verbose_name_plural = "Customer Profile"
 
-
     def __str__(self):
         return "{}".format(self.name)
+
+class Bookings(Common):
+
+    vehicle_type = models.ForeignKey(VehicleBrand,on_delete=models.PROTECT,related_name='vehicle_types')
+    slot = models.ForeignKey(TimeSlots, on_delete=models.PROTECT,related_name='time_slot')
+    area = models.ForeignKey(Area, on_delete=models.PROTECT,related_name='service_area')
+    booking_amount = models.IntegerField('booking_amount',default=0)
+    completed = models.BooleanField('completed?',default=False,help_text='If it True means that booking completed. If it False Booking under progress')
+    longitude = models.DecimalField('longitude',max_digits=9, decimal_places=6)
+    latitude  = models.DecimalField('latitude',max_digits=9, decimal_places=6)
+    
+    class Meta:
+        verbose_name_plural = "Bookings"
+        
+    def __str__(self):
+        return str(self.vehicle_type)
+
+    def save(self, **kwargs):
+
+        if self.completed:
+            TimeSlots.objects.filter(slot=self.slot).update(active=True)
+        elif self.completed != True:
+            TimeSlots.objects.filter(slot=self.slot).update(active=False)
+
+        super(Bookings, self).save(**kwargs)
+
+
+
+
+
+

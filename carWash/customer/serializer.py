@@ -2,8 +2,17 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 from .models import *
 from django.contrib.auth import login
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer,TokenVerifySerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.authtoken.models import Token
+
 
 User = get_user_model()
+
+class EmailOTPSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmailOTP
+        fields = '__all__'
 
 class CreateUserSerializer(serializers.ModelSerializer):
 
@@ -69,19 +78,46 @@ class VehicleBrandSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VehicleBrand
-        fields = ('pk','brand_name')
+        fields = ('pk','brand_name','amount')
 
-class BookingSerializer(serializers.ModelSerializer):
 
-    active = serializers.BooleanField(read_only=True)
+class AreaSerializer(serializers.ModelSerializer):
+    
     class Meta:
-        model = Bookings
-        fields = ('pk','vehicle_type','area','date','slot','longitude','latitude','active')
+        model = Area
+        fields = ('pk','area_name',)
 
+class TimeSlotsSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = TimeSlots
+        fields = ('pk','slot',)
 
 class CustomerSerializer(serializers.ModelSerializer):
+    
     email = serializers.CharField(read_only=True)
-
     class Meta:
         model = CustomerProfile
         fields = ('pk','name','phone','address','photo','email')
+
+class BookingSerializer(serializers.ModelSerializer):
+
+    # completed = serializers.BooleanField(read_only=True)
+    class Meta:
+        model = Bookings
+        fields = ('pk','vehicle_type','area','slot','booking_amount','longitude','latitude',)
+
+
+
+
+class LoginSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        print(self.user)
+        refresh = self.get_token(self.user)
+        
+        token, created = Token.objects.get_or_create(user=self.user)
+        # data["token"] = data.pop("access")
+        data["id"] = self.user.id
+        data["token"] = token.key
+        return data

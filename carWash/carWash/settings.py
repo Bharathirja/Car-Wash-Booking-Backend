@@ -41,18 +41,34 @@ INSTALLED_APPS = [
     'customer',
     "rest_framework",
     'rest_framework.authtoken',
+    'rest_auth',
+    'corsheaders'
     
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'requestlogs.middleware.RequestLogsMiddleware',
+    
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+
+# define the rest framework pre build functions.
+REST_FRAMEWORK = {
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.MultiPartParser',
+    ],
+}
 
 ROOT_URLCONF = 'carWash.urls'
 
@@ -129,9 +145,72 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 REST_FRAMEWORK = {
     
     'DEFAULT_AUTHENTICATION_CLASSES':(
-    'rest_framework.authentication.TokenAuthentication',),
+    'rest_framework.authentication.TokenAuthentication', 
+    'rest_framework.authentication.BasicAuthentication',
+    'rest_framework.authentication.SessionAuthentication'),
+    
+    # 'EXCEPTION_HANDLER': 'requestlogs.views.exception_handler',
+    #  'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ),
+    # 'DEFAULT_AUTHENTICATION_CLASSES': [
+    #     'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+    # ],
 
      
+}
+
+# REST_FRAMEWORK = {
+#     # 'DEFAULT_PERMISSION_CLASSES': (
+#     #     'rest_framework.permissions.IsAuthenticated',
+#     # ),
+#     'EXCEPTION_HANDLER': 'requestlogs.views.exception_handler',
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#         'rest_framework.authentication.BasicAuthentication',
+#         'rest_framework.authentication.SessionAuthentication',
+#     ],
+# }
+
+REST_USE_JWT = True
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'requestlogs_to_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'requestlogs.log',
+        },
+        'root': {
+            'class': 'logging.StreamHandler',
+            'filters': ['request_id_context'],
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['root'],
+            'level': 'DEBUG',
+        },
+        'requestlogs': {
+            'handlers': ['requestlogs_to_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+    'filters': {
+        'request_id_context': {
+            '()': 'requestlogs.logging.RequestIdContext',
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s %(levelname)s %(request_id)s %(module)s:%(lineno)s %(message)s'
+        },
+    },
 }
 
 
