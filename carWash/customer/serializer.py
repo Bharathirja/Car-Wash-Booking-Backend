@@ -74,43 +74,48 @@ class LoginSerializer(serializers.Serializer):
         data['user'] = user
         return data
 
-class VehicleBrandSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = VehicleBrand
-        fields = ('pk','brand_name','amount')
-
-
 class AreaSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Area
         fields = ('pk','area_name',)
 
+
+class VehicleBrandSerializer(serializers.ModelSerializer):
+   
+    class Meta:
+        model = VehicleBrand
+        fields = ('pk','brand_name','amount')
+
+
 class TimeSlotsSerializer(serializers.ModelSerializer):
-    
+   
     class Meta:
         model = TimeSlots
-        fields = ('pk','slot',)
+        fields = ('pk','slot','date','active')
+
 
 class CustomerSerializer(serializers.ModelSerializer):
     
-    email = serializers.CharField(read_only=True)
+    # email = serializers.CharField(read_only=True)
     class Meta:
         model = CustomerProfile
         fields = ('pk','name','phone','address','photo','email')
 
 class BookingSerializer(serializers.ModelSerializer):
 
-    # completed = serializers.BooleanField(read_only=True)
+    completed = serializers.CharField(read_only=True)
+
     class Meta:
         model = Bookings
-        fields = ('pk','vehicle_type','area','slot','booking_amount','longitude','latitude',)
-
-
-
+        fields = (
+            'pk','vehicle_type','area','slot','date',
+            'completed','booking_amount','longitude',
+            'latitude','longitude_delta','latitude_delta')
+    
 
 class LoginSerializer(TokenObtainPairSerializer):
+
     def validate(self, attrs):
         data = super().validate(attrs)
         print(self.user)

@@ -63,7 +63,7 @@ class VehicleBrandAdmin(admin.ModelAdmin):
 class TimeSlotsAdmin(admin.ModelAdmin):
     
     model = TimeSlots
-    list_display = ('pk','slot','active','created_at')
+    list_display = ('pk','slot','date','active','created_at')
     list_display_links = ('slot',)
     list_filter = ('slot',)
    
@@ -85,18 +85,20 @@ class AreaAdmin(admin.ModelAdmin):
 class BookingsAdmin(admin.ModelAdmin):
     
     model = VehicleBrand
-    list_display = ('pk','vehicle_type','area','slot','booking_amount','longitude','latitude','completed','created_user','created_at')
+    list_display = (
+        'pk','vehicle_type','area','slot','booking_amount',
+        'longitude','longitude_delta','latitude','latitude_delta','date','completed','created_user','created_at')
     list_display_links = ('vehicle_type',)
-    list_filter = ('vehicle_type','area','booking_amount','created_at','slot')
+    list_filter = ('vehicle_type','area','booking_amount','date','created_at','slot')
    
-    search_fields = ('vehicle_type','slot','booking_amount')
-    ordering = ('vehicle_type','booking_amount','created_at')
+    search_fields = ('vehicle_type','slot','date','booking_amount')
+    ordering = ('vehicle_type','booking_amount','date','created_at')
 
 '''Customer profile'''
 class CustomerProfileAdmin(admin.ModelAdmin):
     
     model = CustomerProfile
-    list_display = ('pk','phone','name','address','photo','created_at','created_user')
+    list_display = ('pk','phone','name','address','email','photo','created_at','created_user')
     list_display_links = ('phone',)
     list_filter = ('phone','name')
    

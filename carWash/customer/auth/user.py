@@ -12,22 +12,25 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import login,logout
 from django.contrib.auth.hashers import make_password    
 from rest_framework.generics import get_object_or_404
+from django.http.response import Http404
 
 
-'''Generate Random 4 digit number'''
 def send_otp(phone):
+    '''
+    Generate Random 4 digit number
+    '''
     if phone:
         key = random.randint(999,9999)
         return key
     else:
         return False
 
-'''
-Create your views here.Send Verification 
-code to user email
-'''
+
 class SendEmail(APIView):
-    
+    '''
+    Create your views here.Send Verification 
+    code to user email
+    '''
     def get(self,request):
         data = EmailOTP.objects.filter(validated=True)
         serializer = EmailOTPSerializer(data, many=True)
@@ -36,13 +39,9 @@ class SendEmail(APIView):
     def post(self,request):
         try:
             email_address = request.data.get('email')
+            # print(email_address)
             if email_address:
                 email = str(email_address)
-                # user = User.objects.filter(email__iexact = email)
-               
-                # if user.exists():
-                #     return Response({'detail': 'Email already exists'},status = status.HTTP_226_IM_USED)
-                # else:
                 key = send_otp(email)
                 if key:
                     old = EmailOTP.objects.filter(email__iexact = email)
@@ -58,7 +57,7 @@ class SendEmail(APIView):
                         # Email Sending
                         send_mail('Verifications', #Subject
                         'Your Verification OTP is '+ str(key), #Body of mail
-                        'bharathiraja.pappugroup@gmail.com', #from mail
+                        'bharathiraja@pganalytics.in', #from mail
                         [email_address],) #To mail
 
                         return Response({'detail' : 'OTP sent successfully'},status=status.HTTP_200_OK)
@@ -68,20 +67,21 @@ class SendEmail(APIView):
                         # Email Sending
                         send_mail('Verifications',
                         'Your Verification OTP is '+ str(key), 
-                        'bharathiraja.pappugroup@gmail.com',
+                        'bharathiraja@pganalytics.in',
                         [email_address],)
                         return Response({'detail' : 'OTP sent successfully'},status=status.HTTP_200_OK)
                 else:
-                    return Response({'detail' : 'Sending OTP error'},status=status.HTTP_408_REQUEST_TIMEOUT)   
+                    return Response({'detail' : 'Sending OTP error'},status=status.HTTP_400_BAD_REQUEST)   
             else:
-                return Response({'detail' : 'Email is not given'},status=status.HTTP_204_NO_CONTENT) 
+                return Response({'detail' : 'Email is not given'},status=status.HTTP_400_BAD_REQUEST) 
         except Exception as err:
-            return Response({'detail' : str(err)},status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'detail' : str(err)},status=status.HTTP_400_BAD_REQUEST)
 
 
-'''Validate OTP and create new user'''
 class ValidateEmailOTP(APIView):
-
+    '''
+    Validate OTP and create new user
+    '''
     def post(self, request, **kwargs):
 
         try:
@@ -100,14 +100,14 @@ class ValidateEmailOTP(APIView):
                         exist_user = User.objects.filter(email__iexact = email)
                         if exist_user.exists():
                             user = User.objects.get(email=email)
+                            profile = CustomerProfile.objects.get(email = user)
                             token, created = Token.objects.get_or_create(user=user)
-                            customer_name = CustomerProfile.objects.get(created_user = user.pk)
-                            print(customer_name.name)
-                            return Response({'detail' : 'OTP MATCHED','token' : token.key,'user_id':str(token.user.pk),'customer_name':customer_name.name,'exist':True})
+                            # customer_name = CustomerProfile.objects.get(created_user = user.pk)
+                            return Response({'detail' : 'OTP MATCHED','token' : token.key,'exist':True,'name':profile.name,'photo':"/media/"+str(profile.photo)})
                         User.objects.create_user(email = email, password = otp_sent)
                         user = User.objects.get(email=email)
                         token, created = Token.objects.get_or_create(user=user)
-                        return Response({'detail' : 'OTP MATCHED','token' : token.key,'user_id':str(token.user.pk),'exist':False})
+                        return Response({'detail' : 'OTP MATCHED','token' : token.key,'exist':False})
                     return Response({'detail' : 'OTP MISMATCHED'},status=status.HTTP_400_BAD_REQUEST)
                 return  Response({'detail' : 'OTP OR EMAIL MISMATCHED.'},status=status.HTTP_400_BAD_REQUEST)
             return Response({'detail' : 'Please provide both Email and OTP'},status=status.HTTP_400_BAD_REQUEST)
@@ -116,9 +116,10 @@ class ValidateEmailOTP(APIView):
 
 
 
-'''User Logout'''
 class LogoutView(APIView):
-
+    '''
+    User Logout
+    '''
     def post(self,request):
         user_token = request.data['token']
         try:
@@ -131,17 +132,26 @@ class LogoutView(APIView):
                 token.delete()
                 EmailOTP.objects.filter(email=email).update(validated = False)
                 return Response({'detail':'User logged out successfully'},status=status.HTTP_200_OK)
-            return Response({'detail' : 'User not found'},status=status.HTTP_204_NO_CONTENT)   
-        except Exception as err:
-            return Response({'detail':str(err)},status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Http404
+        except Token.DoesNotExist:
+            raise Http404
 
   
-'''Token verifying'''
 class TokenVerify(APIView):
-    
+    '''
+    Token verifying
+    '''
     def post(self, request):
         try:
             get_object_or_404(Token, key = request.data["token"])
             return Response({"detail":"success"},status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error":str(e)})
+
+
+class LoginView(TokenObtainPairView):
+    '''
+    Login viewset
+    '''
+    queryset = User.objects.all()
+    serializer_class = LoginSerializer

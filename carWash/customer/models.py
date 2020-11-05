@@ -1,14 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, AbstractUser
 from django.core.validators import RegexValidator
-from django.db.models import Q
-from django.db.models.signals import pre_save, post_save
-from django.dispatch import receiver
-from django.db.models.signals import post_save
-import random
-import os
-import requests
-from django.contrib.auth.hashers import make_password    
 
 
 class UserManager(BaseUserManager):
@@ -41,18 +33,13 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     
-    # username = None
     email = models.EmailField('Email',max_length=254, unique=True,null=True)
-    # exists = models.BooleanField('exists',default = True,help_text="if true means new user false means exists user")
     
-
     USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     objects = UserManager()
-
-    
 
     def __str__(self):
         return self.email
@@ -77,11 +64,7 @@ class EmailOTP(models.Model):
     def __str__(self):
         return str(self.email) + ' is sent ' + str(self.otp)
 
-    # def save(self, **kwargs):
-    #     some_salt = 'OTP' 
-    #     self.otp = make_password(self.otp, some_salt)
-       
-    #     super(EmailOTP, self).save(**kwargs)
+    
 
 class Common(models.Model):
 
@@ -107,6 +90,8 @@ class TimeSlots(Common):
 
     slot = models.CharField('slot',max_length=250)
     active = models.BooleanField('active',default=True)
+    date = models.DateField('date',auto_now=True)
+
     
     class Meta:
         verbose_name_plural = "Time Slots"
@@ -128,14 +113,15 @@ class Area(Common):
 class CustomerProfile(Common):
     
     phone_regex = RegexValidator( regex = r'^\+?1?\d{9,10}$', message ="Phone number must be entered in the format +919999999999. Up to 10 digits allowed.")
-    phone       = models.CharField('Phone',validators =[phone_regex], max_length=10)
+    phone       = models.CharField('Phone',validators =[phone_regex], max_length=10,null=False,blank=False)
     name = models.CharField(max_length=250,null=False,blank=False)
-    email = models.EmailField(max_length=250, unique = True)
-    address = models.CharField(max_length=250)
-    photo = models.ImageField(upload_to='customers/', null=True, blank=True)
+    email = models.EmailField(max_length=250,null=False,blank=False,unique=True)
+    address = models.CharField(max_length=250,null=False,blank=False)
+    photo = models.FileField(upload_to='customers/', null=True, blank=True)
     
     class Meta:
         verbose_name_plural = "Customer Profile"
+        # unique_together = (('phone', 'email'),)
 
     def __str__(self):
         return "{}".format(self.name)
@@ -145,13 +131,17 @@ class Bookings(Common):
     vehicle_type = models.ForeignKey(VehicleBrand,on_delete=models.PROTECT,related_name='vehicle_types')
     slot = models.ForeignKey(TimeSlots, on_delete=models.PROTECT,related_name='time_slot')
     area = models.ForeignKey(Area, on_delete=models.PROTECT,related_name='service_area')
+    date = models.DateField('date')
     booking_amount = models.IntegerField('booking_amount',default=0)
     completed = models.BooleanField('completed?',default=False,help_text='If it True means that booking completed. If it False Booking under progress')
-    longitude = models.DecimalField('longitude',max_digits=9, decimal_places=6)
-    latitude  = models.DecimalField('latitude',max_digits=9, decimal_places=6)
+    longitude = models.CharField('longitude', max_length=30)
+    latitude  = models.CharField('latitude', max_length=30)
+    longitude_delta = models.CharField('longitude_delta', max_length=200)
+    latitude_delta  = models.CharField('latitude_delta', max_length=200)
     
     class Meta:
         verbose_name_plural = "Bookings"
+        unique_together = (('date', 'slot','completed'),)
         
     def __str__(self):
         return str(self.vehicle_type)
@@ -159,10 +149,9 @@ class Bookings(Common):
     def save(self, **kwargs):
 
         if self.completed:
-            TimeSlots.objects.filter(slot=self.slot).update(active=True)
-        elif self.completed != True:
-            TimeSlots.objects.filter(slot=self.slot).update(active=False)
-
+            TimeSlots.objects.filter(slot=self.slot).update(active=True,date=self.date)
+        else:
+            TimeSlots.objects.filter(slot=self.slot).update(active=False,date=self.date)
         super(Bookings, self).save(**kwargs)
 
 
