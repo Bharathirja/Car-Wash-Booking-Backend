@@ -31,9 +31,10 @@ class UserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
+
 class User(AbstractUser):
     
-    email = models.EmailField('Email',max_length=254, unique=True,null=True)
+    email = models.EmailField('Email', max_length=254, unique=True, null=True)
     
     USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'
@@ -48,15 +49,16 @@ class User(AbstractUser):
         self.username = self.email
         super(User, self).save(*args, **kwargs)
 
+
 class EmailOTP(models.Model):
    
     email = models.EmailField(max_length=254, unique=True) 
-    otp   = models.CharField(max_length=9, blank=True, null=True)
+    otp = models.CharField(max_length=9, blank=True, null=True)
     count = models.IntegerField(default=0, help_text='Number of OTP sent')
-    validated = models.BooleanField(default=False, help_text='If it is true, that means user have validate otp correctly in second API')
+    validated = models.BooleanField(default=False, help_text="If it is true, that means user have validate otp correctly in second API")
     active = models.BooleanField(default=True)
-    created_at = models.DateTimeField('created_at',auto_now_add=True)
-    updated_at = models.DateTimeField('updated_at',auto_now_add=True)
+    created_at = models.DateTimeField('created_at', auto_now_add=True)
+    updated_at = models.DateTimeField('updated_at', auto_now_add=True)
 
     class Meta:
         verbose_name_plural = "Emails and OTP"
@@ -64,20 +66,20 @@ class EmailOTP(models.Model):
     def __str__(self):
         return str(self.email) + ' is sent ' + str(self.otp)
 
-    
 
 class Common(models.Model):
 
-    created_at = models.DateTimeField('created_at',auto_now_add=True)
-    updated_at = models.DateTimeField('updated_at',auto_now_add=True)
-    created_user = models.ForeignKey(User,on_delete=models.PROTECT)
+    created_at = models.DateTimeField('created_at', auto_now_add=True)
+    updated_at = models.DateTimeField('updated_at', auto_now_add=True)
+    created_user = models.ForeignKey(User, on_delete=models.PROTECT)
 
     class Meta:
         abstract = True
 
+
 class VehicleBrand(Common):
 
-    brand_name = models.CharField(max_length=250,unique=True)
+    brand_name = models.CharField(max_length=250, unique=True)
     amount = models.IntegerField('amount')
     
     class Meta:
@@ -86,22 +88,23 @@ class VehicleBrand(Common):
     def __str__(self):
         return str(self.brand_name)
 
+
 class TimeSlots(Common):
 
-    slot = models.CharField('slot',max_length=250)
-    active = models.BooleanField('active',default=True)
-    date = models.DateField('date',auto_now=True)
+    slot = models.CharField('slot', max_length=250)
+    active = models.BooleanField('active', default=True)
+    date = models.DateField('date', auto_now=True)
 
-    
     class Meta:
         verbose_name_plural = "Time Slots"
 
     def __str__(self):
         return str(self.slot)
 
+
 class Area(Common):
 
-    area_name = models.CharField('area_name',max_length=250)
+    area_name = models.CharField('area_name', max_length=250)
 
     class Meta:
         verbose_name_plural = "Area"
@@ -112,11 +115,11 @@ class Area(Common):
 
 class CustomerProfile(Common):
     
-    phone_regex = RegexValidator( regex = r'^\+?1?\d{9,10}$', message ="Phone number must be entered in the format +919999999999. Up to 10 digits allowed.")
-    phone       = models.CharField('Phone',validators =[phone_regex], max_length=10,null=False,blank=False)
-    name = models.CharField(max_length=250,null=False,blank=False)
-    email = models.EmailField(max_length=250,null=False,blank=False,unique=True)
-    address = models.CharField(max_length=250,null=False,blank=False)
+    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,10}$', message="Phone number must be entered in the format +919999999999. Up to 10 digits allowed.")
+    phone = models.CharField('Phone', validators=[phone_regex], max_length=10, null=False, blank=False)
+    name = models.CharField(max_length=250, null=False, blank=False)
+    email = models.EmailField(max_length=250, null=False, blank=False, unique=True)
+    address = models.CharField(max_length=250, null=False, blank=False)
     photo = models.FileField(upload_to='customers/', null=True, blank=True)
     
     class Meta:
@@ -126,22 +129,23 @@ class CustomerProfile(Common):
     def __str__(self):
         return "{}".format(self.name)
 
+
 class Bookings(Common):
 
-    vehicle_type = models.ForeignKey(VehicleBrand,on_delete=models.PROTECT,related_name='vehicle_types')
-    slot = models.ForeignKey(TimeSlots, on_delete=models.PROTECT,related_name='time_slot')
-    area = models.ForeignKey(Area, on_delete=models.PROTECT,related_name='service_area')
+    vehicle_type = models.ForeignKey(VehicleBrand, on_delete=models.PROTECT, related_name='vehicle_types')
+    slot = models.ForeignKey(TimeSlots, on_delete=models.PROTECT, related_name='time_slot')
+    area = models.ForeignKey(Area, on_delete=models.PROTECT, related_name='service_area')
     date = models.DateField('date')
-    booking_amount = models.IntegerField('booking_amount',default=0)
-    completed = models.BooleanField('completed?',default=False,help_text='If it True means that booking completed. If it False Booking under progress')
+    booking_amount = models.IntegerField('booking_amount', default=0)
+    completed = models.BooleanField('completed?', default=False, help_text='If it True means that booking completed. If it False Booking under progress')
     longitude = models.CharField('longitude', max_length=30)
-    latitude  = models.CharField('latitude', max_length=30)
+    latitude = models.CharField('latitude', max_length=30)
     longitude_delta = models.CharField('longitude_delta', max_length=200)
-    latitude_delta  = models.CharField('latitude_delta', max_length=200)
+    latitude_delta = models.CharField('latitude_delta', max_length=200)
     
     class Meta:
         verbose_name_plural = "Bookings"
-        unique_together = (('date', 'slot','completed'),)
+        unique_together = (('date', 'slot', 'completed'),)
         
     def __str__(self):
         return str(self.vehicle_type)
@@ -149,13 +153,7 @@ class Bookings(Common):
     def save(self, **kwargs):
 
         if self.completed:
-            TimeSlots.objects.filter(slot=self.slot).update(active=True,date=self.date)
+            TimeSlots.objects.filter(slot=self.slot).update(active=True, date=self.date)
         else:
-            TimeSlots.objects.filter(slot=self.slot).update(active=False,date=self.date)
+            TimeSlots.objects.filter(slot=self.slot).update(active=False, date=self.date)
         super(Bookings, self).save(**kwargs)
-
-
-
-
-
-
