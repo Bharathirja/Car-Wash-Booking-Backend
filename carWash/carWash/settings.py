@@ -61,8 +61,6 @@ MIDDLEWARE = [
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 
-
-
 ROOT_URLCONF = 'carWash.urls'
 
 TEMPLATES = [
@@ -137,7 +135,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 REST_FRAMEWORK = {
     
-    'DEFAULT_AUTHENTICATION_CLASSES':(
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication', 
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication'
@@ -156,8 +154,8 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-            'datefmt' : "%d/%b/%Y %H:%M:%S"
+            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt': "%d/%b/%Y %H:%M:%S"
         },
         'simple': {
             'format': '%(levelname)s %(message)s'
@@ -168,9 +166,9 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': 'requestlogs.log',
-            'when': 'D', # this specifies the interval
-            'interval': 1, # defaults to 1, only necessary for other values 
-            'backupCount': 10, # how many backup file to keep, 10 days
+            'when': 'D',  # this specifies the interval
+            'interval': 1,  # defaults to 1, only necessary for other values
+            'backupCount': 10,  # how many backup file to keep, 10 days
             'formatter': 'verbose',
         },
         'mail_admins': {
@@ -182,7 +180,7 @@ LOGGING = {
     },  
     'loggers': {
         'django': {
-            'handlers': ['file','mail_admins'],
+            'handlers': ['file', 'mail_admins'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
         },
         'django.request': {
@@ -191,7 +189,7 @@ LOGGING = {
             'propagate': False,
         },
         '': {
-            'handlers': ['file','mail_admins'],
+            'handlers': ['file', 'mail_admins'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
         }
     },  

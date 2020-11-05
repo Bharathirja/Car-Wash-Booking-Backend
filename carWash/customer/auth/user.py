@@ -1,15 +1,11 @@
-from django.shortcuts import render
-from django.http import HttpResponse
+
 import random
 from django.core.mail import send_mail
 from ..serializer import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import permissions, status, generics, viewsets
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework import permissions, status
 from rest_framework.authtoken.models import Token
-from django.contrib.auth import login, logout
-from django.contrib.auth.hashers import make_password    
 from rest_framework.generics import get_object_or_404
 from django.http.response import Http404
 from ..models import User, EmailOTP
@@ -145,15 +141,8 @@ class TokenVerify(APIView):
     @staticmethod
     def post(request):
         try:
-            get_object_or_404(Token, key = request.data["token"])
-            return Response({"detail":"success"},status=status.HTTP_200_OK)
+            get_object_or_404(Token, key=request.data["token"])
+            return Response({"detail": "success"}, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({"error":str(e)})
+            return Response({"error": str(e)})
 
-
-class LoginView(TokenObtainPairView):
-    """
-    Login viewset
-    """
-    queryset = User.objects.all()
-    serializer_class = LoginSerializer
